@@ -1,0 +1,51 @@
+@media (max-width: 768px) {
+  .app-nav {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 10px 14px;
+  }
+
+  .nav-brand {
+    font-size: 0.9rem;
+  }
+
+  .nav-links button {
+    font-size: 0.8rem;
+    padding: 5px 9px;
+  }
+
+  .hud-overlay {
+    padding: 14px;
+  }
+
+  .depth-value {
+    font-size: 1.6rem;
+  }
+
+  .hud-hint {
+    font-size: 0.72rem;
+    bottom: 16px;
+    max-width: 90vw;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .info-panel {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    transform: none;
+    width: auto;
+    max-height: 60vh;
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
