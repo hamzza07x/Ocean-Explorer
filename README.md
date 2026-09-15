@@ -1,9 +1,8 @@
-<<<<<<< HEAD
 # 🌊 Ocean Explorer
 
 An interactive 3D underwater exploration experience, built with React and React Three Fiber.
 
-**Status: Phase 2 of 4 — environment, camera movement, and interactive marine life/objects are working. See "Build status" below.**
+**Status: Phase 3 of 4 — environment, camera, interaction, zones, and search are all working. See "Build status" below.**
 
 ## Project Overview
 
@@ -17,17 +16,20 @@ on genuine 3D interaction rather than a 3D-looking background.
 |---|---|---|
 | 1 | 3D environment, camera movement, WebGL fallback, page shell | ✅ Done |
 | 2 | Interactive marine life & objects, info panels | ✅ Done |
-| 3 | Ocean zones & transitions, search/filter | ⏳ Next |
-| 4 | Discovery system + Dive Journal (CRUD), settings, mobile controls, polish | ⏳ Planned |
+| 3 | Ocean zones & transitions, search/filter | ✅ Done |
+| 4 | Discovery system + Dive Journal (CRUD), settings, mobile controls, polish | ⏳ Next |
 
 ## Features (current)
 
 - Full-screen 3D ocean scene — procedural seafloor, rocks, coral, swaying kelp, rising bubbles
 - Free-swim camera: smooth accelerating/decelerating WASD movement, mouse-look via pointer lock, vertical movement with Space / Shift
-- 13 marine life entries and 3 world objects (shipwreck, buoy, statue), each an interactive low-poly 3D shape with idle motion
+- Five distinct ocean zones (Sunlit, Twilight, Midnight, Abyssal, Hadal), each with its own fog, lighting, floor/particle color, and creature roster; reef life (coral, kelp) only appears in the two lit zones, matching how real reefs work
+- Zone selector with a fade transition and a zone title card — switching zones is a deliberate teleport with a loading-style moment, not an instant cut
+- 13 marine life entries and 4 world objects (shipwreck, buoy, statue, hydrothermal vent), each an interactive low-poly 3D shape with idle motion
 - Crosshair-based targeting: look at something to highlight it and see its name, click to open its info panel — this app uses pointer-lock mouse-look, which hides/freezes the OS cursor, so hover is done by raycasting from the camera's own forward direction each frame rather than from mouse position
+- Search with category (animal/object) and zone filters across every entry; selecting a result switches zones if needed and spawns you near it, then opens its info panel
 - Reusable glassmorphism info panel (side panel on desktop, bottom sheet on mobile) showing name, scientific name, depth, habitat, diet, size, and facts — only for fields a given entry actually has
-- Live depth readout that reads the camera's actual position and reports the current ocean zone
+- Live depth readout, scaled per zone so it always reads within that zone's real depth range
 - WebGL support detection with a clean fallback screen
 - Responsive HUD and navigation shell (Explore / Discoveries / About)
 
@@ -67,23 +69,30 @@ Touch controls for mobile arrive in Phase 4.
 
 ## Ocean zones
 
-Five zones are defined in `scripts/data.js` (Sunlit, Twilight, Midnight, Abyssal, Hadal) and
-the depth readout already switches between them live. Distinct per-zone environments
-(lighting, fog, creatures) are built in Phase 3.
+Five zones are defined in `scripts/data.js` (Sunlit, Twilight, Midnight, Abyssal, Hadal),
+each carrying its own fog color/distance, lighting, floor and particle color, and whether it
+has reef life. Zones are separate "rooms" rather than one continuous 6000m-deep space — real
+scale would mean swimming through kilometers of empty water between them, so depth within a
+zone is calculated from the camera and then scaled into that zone's real depth range for
+display (see `Home.jsx`). Switching zones, from the zone list or a search result, triggers a
+fade + zone title card rather than an instant cut. `scripts/OceanZones.jsx` is the selector
+UI; `scripts/OceanScene.jsx` reads the active zone's config to build the environment.
 
 ## 3D interaction
 
 Everything in the scene — floor, rocks, coral, kelp, creatures, objects — is built from plain
 Three.js geometry, not loaded models, so nothing can break from a missing asset. Marine life
 and objects are grouped into a handful of reusable low-poly "archetypes" (fish, shark, ray,
-turtle, jelly, cephalopod, whale, anglerfish, plus shipwreck/buoy/statue for objects) that
-each data entry picks by name — see `scripts/MarineLife.jsx`. Targeting uses a raycast from
-the camera's forward direction each frame rather than mouse position, since pointer-lock
+turtle, jelly, cephalopod, whale, anglerfish, plus shipwreck/buoy/statue/vent for objects)
+that each data entry picks by name — see `scripts/MarineLife.jsx`. Targeting uses a raycast
+from the camera's forward direction each frame rather than mouse position, since pointer-lock
 mouse-look hides the OS cursor; see `scripts/Interactables.jsx`.
 
 ## Search system
 
-Planned for Phase 3: search and filter across marine life by name, category, and zone.
+`scripts/Search.jsx` searches name and scientific name across every marine life entry and
+world object, with category (animal/object) and zone filters. Selecting a result switches to
+its zone if you're not already there and spawns you near it, then opens its info panel.
 
 ## Discovery system
 
@@ -121,7 +130,3 @@ then deploy the `dist/` folder to Vercel or Netlify.
 
 Sonar, compass, bioluminescence proximity effects, submarine mode, and ambient sound are
 stretch goals for after the core experience (Phases 1–4) is complete and solid.
-=======
-# Ocean-Explorer
-An interactive 3D underwater exploration experience, built with React and React Three Fiber.
->>>>>>> 15ba688 (Initial commit)

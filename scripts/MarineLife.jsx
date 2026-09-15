@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
+import * as THREE from 'three'
 import { marineLife, worldObjects } from './data.js'
 import { useRegisterInteractable, useIsTargeted } from './Interactables.jsx'
 
@@ -242,6 +243,28 @@ function Statue({ color, highlighted }) {
   )
 }
 
+function Vent({ color, highlighted }) {
+  return (
+    <group>
+      <mesh position={[0, 0.8, 0]} castShadow>
+        <coneGeometry args={[0.7, 1.6, 8]} />
+        <meshStandardMaterial color={color} roughness={0.95} {...highlightProps(highlighted)} />
+      </mesh>
+      <mesh position={[0, 2, 0]}>
+        <coneGeometry args={[0.4, 1.4, 8, 1, true]} />
+        <meshStandardMaterial
+          color="#6b4a3a"
+          transparent
+          opacity={0.35}
+          emissive="#c96b3a"
+          emissiveIntensity={0.4}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
+  )
+}
+
 const ARCHETYPES = {
   fish: Fish,
   shark: Shark,
@@ -253,7 +276,8 @@ const ARCHETYPES = {
   anglerfish: Anglerfish,
   shipwreck: Shipwreck,
   buoy: Buoy,
-  statue: Statue
+  statue: Statue,
+  vent: Vent
 }
 
 function Entity({ data }) {
@@ -261,13 +285,15 @@ function Entity({ data }) {
   return <Interactable data={data}>{(highlighted) => <Archetype color={data.color} highlighted={highlighted} />}</Interactable>
 }
 
-export default function MarineLife() {
+export default function MarineLife({ zoneId }) {
+  const creatures = marineLife.filter((entry) => entry.zone === zoneId)
+  const objects = worldObjects.filter((entry) => entry.zone === zoneId)
   return (
     <>
-      {marineLife.map((entry) => (
+      {creatures.map((entry) => (
         <Entity key={entry.id} data={entry} />
       ))}
-      {worldObjects.map((entry) => (
+      {objects.map((entry) => (
         <Entity key={entry.id} data={entry} />
       ))}
     </>

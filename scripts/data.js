@@ -1,9 +1,89 @@
 export const zones = [
-  { id: 'sunlit', name: 'Sunlit Zone', minDepth: 0, maxDepth: 50 },
-  { id: 'twilight', name: 'Twilight Zone', minDepth: 50, maxDepth: 200 },
-  { id: 'midnight', name: 'Midnight Zone', minDepth: 200, maxDepth: 1000 },
-  { id: 'abyssal', name: 'Abyssal Zone', minDepth: 1000, maxDepth: 6000 },
-  { id: 'hadal', name: 'Hadal Zone', minDepth: 6000, maxDepth: Infinity }
+  {
+    id: 'sunlit',
+    name: 'Sunlit Zone',
+    minDepth: 0,
+    maxDepth: 50,
+    hasReef: true,
+    fogColor: '#03111c',
+    fogNear: 15,
+    fogFar: 140,
+    skyColor: '#4fa8d8',
+    groundColor: '#031018',
+    ambientIntensity: 0.75,
+    directionalIntensity: 0.7,
+    floorColor: '#071c29',
+    rockColor: '#26404c',
+    particleColor: '#8fd9e8'
+  },
+  {
+    id: 'twilight',
+    name: 'Twilight Zone',
+    minDepth: 50,
+    maxDepth: 200,
+    hasReef: true,
+    fogColor: '#020c16',
+    fogNear: 10,
+    fogFar: 95,
+    skyColor: '#1c4f70',
+    groundColor: '#020810',
+    ambientIntensity: 0.48,
+    directionalIntensity: 0.32,
+    floorColor: '#04141e',
+    rockColor: '#1c303a',
+    particleColor: '#5fb8c9'
+  },
+  {
+    id: 'midnight',
+    name: 'Midnight Zone',
+    minDepth: 200,
+    maxDepth: 1000,
+    hasReef: false,
+    fogColor: '#010710',
+    fogNear: 8,
+    fogFar: 65,
+    skyColor: '#0c2436',
+    groundColor: '#000000',
+    ambientIntensity: 0.26,
+    directionalIntensity: 0.12,
+    floorColor: '#01090f',
+    rockColor: '#101c22',
+    particleColor: '#4dd8c8'
+  },
+  {
+    id: 'abyssal',
+    name: 'Abyssal Zone',
+    minDepth: 1000,
+    maxDepth: 6000,
+    hasReef: false,
+    fogColor: '#00040a',
+    fogNear: 6,
+    fogFar: 48,
+    skyColor: '#04121a',
+    groundColor: '#000000',
+    ambientIntensity: 0.16,
+    directionalIntensity: 0.05,
+    floorColor: '#00060c',
+    rockColor: '#0a1318',
+    particleColor: '#3ba896'
+  },
+  {
+    id: 'hadal',
+    name: 'Hadal Zone',
+    minDepth: 6000,
+    maxDepth: 8000,
+    hasReef: false,
+    fogColor: '#000103',
+    fogNear: 5,
+    fogFar: 36,
+    skyColor: '#020608',
+    groundColor: '#000000',
+    ambientIntensity: 0.1,
+    directionalIntensity: 0.02,
+    floorColor: '#000103',
+    rockColor: '#060a0c',
+    particleColor: '#2c7d70'
+  }
 ]
 
 export function getZoneForDepth(depth) {
@@ -174,7 +254,7 @@ export const marineLife = [
     description: 'Lures prey with a glowing bioluminescent appendage powered by symbiotic bacteria.',
     facts: ['Males are tiny and fuse permanently onto a female\u2019s body.', 'Its bioluminescent lure flashes to mimic prey.'],
     archetype: 'anglerfish',
-    position: [0, -150, 0],
+    position: [12, -35, -18],
     scale: 0.7,
     color: '#2b2530'
   },
@@ -192,7 +272,7 @@ export const marineLife = [
     description: 'A rarely-seen giant with the largest eyes of any animal, evolved to detect faint light in the deep.',
     facts: ['Its eyes can be as large as a dinner plate.', 'Was not filmed alive in the wild until 2012.'],
     archetype: 'cephalopod',
-    position: [50, -200, -50],
+    position: [-22, -25, 28],
     scale: 2.2,
     color: '#7a4a5c'
   },
@@ -210,7 +290,7 @@ export const marineLife = [
     description: 'Despite its name, a harmless scavenger that drifts through one of the ocean\u2019s most oxygen-poor layers.',
     facts: ['Can turn itself inside out to display spiny projections when threatened.', 'Related more closely to octopuses than true squid.'],
     archetype: 'cephalopod',
-    position: [0, -700, 0],
+    position: [18, -32, 12],
     scale: 0.5,
     color: '#3a1f38'
   },
@@ -228,7 +308,7 @@ export const marineLife = [
     description: 'Named for the ear-like fins it flaps to hover just above the seafloor.',
     facts: ['Lives deeper than almost any other octopus species.', 'Swallows its prey whole rather than biting it.'],
     archetype: 'cephalopod',
-    position: [0, -1500, 0],
+    position: [-16, -18, -22],
     scale: 0.6,
     color: '#c98fae'
   },
@@ -246,7 +326,7 @@ export const marineLife = [
     description: 'One of the deepest-living fish ever recorded, tolerant of crushing pressure that would kill most animals.',
     facts: ['Its body is soft and gelatinous rather than boned, which helps it resist pressure.', 'Recorded at depths beyond 8,000 meters in the Mariana Trench.'],
     archetype: 'fish',
-    position: [0, -6500, 0],
+    position: [0, -22, 10],
     scale: 0.4,
     color: '#d9c9a8'
   }
@@ -292,6 +372,19 @@ export const worldObjects = [
     position: [35, -46, 15],
     scale: 1,
     color: '#5c6b63',
+    static: true
+  },
+  {
+    id: 'hydrothermal-vent',
+    name: 'Hydrothermal Vent',
+    category: 'object',
+    zone: 'abyssal',
+    description: 'A mineral-rich plume rising from a crack in the seafloor, hot enough to support life with no sunlight at all.',
+    facts: ['Supports ecosystems that run on chemical energy instead of sunlight.', 'Plumes can reach several hundred degrees Celsius.'],
+    archetype: 'vent',
+    position: [0, -48, -12],
+    scale: 1,
+    color: '#3a2a28',
     static: true
   }
 ]

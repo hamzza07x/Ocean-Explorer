@@ -6,11 +6,11 @@ import Controls from './Controls.jsx'
 import MarineLife from './MarineLife.jsx'
 import { InteractionProvider } from './Interactables.jsx'
 
-function OceanFloor() {
+function OceanFloor({ color }) {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -60, 0]} receiveShadow>
       <planeGeometry args={[400, 400, 1, 1]} />
-      <meshStandardMaterial color="#071c29" roughness={1} />
+      <meshStandardMaterial color={color} roughness={1} />
     </mesh>
   )
 }
@@ -19,11 +19,11 @@ function OceanFloor() {
 // loaded models, per the brief's fallback-geometry requirement — nothing
 // here depends on an external asset that could fail to load.
 
-function ProceduralRock({ position, scale = 1 }) {
+function ProceduralRock({ position, scale = 1, color }) {
   return (
     <mesh position={position} scale={scale} castShadow receiveShadow>
       <dodecahedronGeometry args={[1, 0]} />
-      <meshStandardMaterial color="#26404c" roughness={0.85} flatShading />
+      <meshStandardMaterial color={color} roughness={0.85} flatShading />
     </mesh>
   )
 }
@@ -46,7 +46,7 @@ function Coral({ position, color }) {
 // Kelp is rooted near the floor but grown tall enough to reach toward the
 // surface. Real kelp forests span the sunlit zone's full water column, so
 // this fixes the empty view honestly rather than just aiming the camera
-// at the floor.
+// at the floor. Only rendered in reef zones — see hasReef below.
 function Seaweed({ position, height }) {
   const ref = useRef()
   const sway = useMemo(() => 0.4 + Math.random() * 0.4, [])
@@ -65,7 +65,7 @@ function Seaweed({ position, height }) {
   )
 }
 
-function Bubbles({ count = 70 }) {
+function Bubbles({ color, count = 70 }) {
   const meshRef = useRef()
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(
@@ -96,45 +96,54 @@ function Bubbles({ count = 70 }) {
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]} frustumCulled={false}>
       <sphereGeometry args={[1, 8, 8]} />
-      <meshStandardMaterial color="#cdf3ff" transparent opacity={0.45} roughness={0.1} />
+      <meshStandardMaterial color={color} transparent opacity={0.45} roughness={0.1} />
     </instancedMesh>
   )
 }
 
-function SceneDecor() {
+// Reef zones (sunlit/twilight) get rocks + coral + kelp. Non-reef zones
+// (midnight/abyssal/hadal) get only bare rock formations — there's no
+// light for coral or kelp to grow on down there, and it matches the
+// brief's own zone descriptions ("large rock formations", "extreme
+// darkness") better than reusing a reef in the dark.
+function SceneDecor({ hasReef, rockColor }) {
   const rocks = useMemo(
     () =>
-      new Array(14).fill().map(() => ({
+      new Array(hasReef ? 14 : 22).fill().map(() => ({
         position: [THREE.MathUtils.randFloatSpread(140), -59, THREE.MathUtils.randFloatSpread(140)],
-        scale: THREE.MathUtils.randFloat(1, 3.2)
+        scale: THREE.MathUtils.randFloat(1, hasReef ? 3.2 : 5)
       })),
-    []
+    [hasReef]
   )
   const corals = useMemo(
     () =>
-      new Array(10).fill().map(() => ({
-        position: [THREE.MathUtils.randFloatSpread(100), -59.5, THREE.MathUtils.randFloatSpread(100)],
-        color: ['#d9556b', '#e8a33d', '#4dd6c0'][Math.floor(Math.random() * 3)]
-      })),
-    []
+      hasReef
+        ? new Array(10).fill().map(() => ({
+            position: [THREE.MathUtils.randFloatSpread(100), -59.5, THREE.MathUtils.randFloatSpread(100)],
+            color: ['#d9556b', '#e8a33d', '#4dd6c0'][Math.floor(Math.random() * 3)]
+          }))
+        : [],
+    [hasReef]
   )
   const seaweeds = useMemo(
     () =>
-      new Array(26).fill().map(() => ({
-        position: [
-          THREE.MathUtils.randFloatSpread(150),
-          -58 + Math.random() * 2,
-          THREE.MathUtils.randFloatSpread(150)
-        ],
-        height: THREE.MathUtils.randFloat(22, 48)
-      })),
-    []
+      hasReef
+        ? new Array(26).fill().map(() => ({
+            position: [
+              THREE.MathUtils.randFloatSpread(150),
+              -58 + Math.random() * 2,
+              THREE.MathUtils.randFloatSpread(150)
+            ],
+            height: THREE.MathUtils.randFloat(22, 48)
+          }))
+        : [],
+    [hasReef]
   )
 
   return (
     <>
       {rocks.map((r, i) => (
-        <ProceduralRock key={`rock-${i}`} {...r} />
+        <ProceduralRock key={`rock-${i}`} color={rockColor} {...r} />
       ))}
       {corals.map((c, i) => (
         <Coral key={`coral-${i}`} {...c} />
@@ -146,31 +155,31 @@ function SceneDecor() {
   )
 }
 
-export default function OceanScene({ onDepthChange, onActivate }) {
+export default function OceanScene({ zone, zoneId, spawnPosition, onDepthChange, onActivate }) {
   return (
     <Canvas
       shadows
       dpr={[1, 1.5]}
-      camera={{ position: [0, -5, 15], fov: 65, near: 0.1, far: 500 }}
+      camera={{ position: spawnPosition, fov: 65, near: 0.1, far: 500 }}
       gl={{ antialias: true }}
     >
-      <color attach="background" args={['#03111c']} />
-      <fog attach="fog" args={['#03111c', 15, 140]} />
-      <hemisphereLight args={['#4fa8d8', '#031018', 0.75]} />
-      <directionalLight position={[20, 40, 10]} intensity={0.7} castShadow />
+      <color attach="background" args={[zone.fogColor]} />
+      <fog attach="fog" args={[zone.fogColor, zone.fogNear, zone.fogFar]} />
+      <hemisphereLight args={[zone.skyColor, zone.groundColor, zone.ambientIntensity]} />
+      <directionalLight position={[20, 40, 10]} intensity={zone.directionalIntensity} castShadow />
       <InteractionProvider onActivate={onActivate}>
         <Suspense fallback={null}>
-          <OceanFloor />
-          <SceneDecor />
-          <Bubbles />
-          <MarineLife />
+          <OceanFloor color={zone.floorColor} />
+          <SceneDecor hasReef={zone.hasReef} rockColor={zone.rockColor} />
+          <Bubbles color={zone.particleColor} />
+          <MarineLife zoneId={zoneId} />
           <Sparkles
             position={[0, -14, 0]}
             count={140}
             scale={[110, 45, 110]}
             size={2}
             speed={0.25}
-            color="#8fd9e8"
+            color={zone.particleColor}
             opacity={0.6}
           />
         </Suspense>
