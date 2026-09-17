@@ -13,7 +13,7 @@ const MAX_INTERACT_DISTANCE = 45
 // actually looking. The fix used by every pointer-locked 3D app is to
 // raycast from the camera's forward direction instead (i.e. the crosshair
 // at screen center) rather than from the cursor at all.
-export function InteractionProvider({ children, onActivate }) {
+export function InteractionProvider({ children, onActivate, activateSignal }) {
   const registry = useRef(new Map())
   const [targetId, setTargetId] = useState(null)
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
@@ -45,6 +45,20 @@ export function InteractionProvider({ children, onActivate }) {
     })
 
     setTargetId((prev) => (prev === closestId ? prev : closestId))
+
+    // Touch devices have no pointer lock to gate a document click on, so
+    // they signal "activate" through this ref instead (set by the mobile
+    // Interact button). Checked against closestId computed just above,
+    // not the targetId state, since state updates are async and this
+    // avoids a one-frame lag between "what you're looking at" and "what
+    // gets activated."
+    if (activateSignal?.current) {
+      activateSignal.current = false
+      if (closestId) {
+        const entry = registry.current.get(closestId)
+        if (entry && onActivate) onActivate(entry.data)
+      }
+    }
   })
 
   useEffect(() => {

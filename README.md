@@ -1,45 +1,57 @@
 # 🌊 Ocean Explorer
 
-An interactive 3D underwater exploration experience, built with React and React Three Fiber.
+An interactive 3D underwater exploration experience, built with React and React Three Fiber
+for a front-end development internship.
 
-**Status: Phase 3 of 4 — environment, camera, interaction, zones, and search are all working. See "Build status" below.**
+**Status: all 4 planned phases built.** See "Known risk areas" near the bottom before you
+submit — a few pieces (mainly touch controls) could not be tested by the tool that built them
+and need a real pass on a phone before you present this.
 
 ## Project Overview
 
-Ocean Explorer lets you swim through a 3D ocean, discover marine life across five depth
-zones, and track what you've found. It's a front-end development internship project focused
-on genuine 3D interaction rather than a 3D-looking background.
+Ocean Explorer lets you swim through a 3D ocean, explore five distinct depth zones, find
+marine life and objects, and keep a personal log — including your own notes — of what you've
+discovered. The 3D scene is the centerpiece, not a background: every creature and object is a
+real, clickable Three.js object, not an image.
 
-## Build status
+## Features
 
-| Phase | Scope | Status |
-|---|---|---|
-| 1 | 3D environment, camera movement, WebGL fallback, page shell | ✅ Done |
-| 2 | Interactive marine life & objects, info panels | ✅ Done |
-| 3 | Ocean zones & transitions, search/filter | ✅ Done |
-| 4 | Discovery system + Dive Journal (CRUD), settings, mobile controls, polish | ⏳ Next |
-
-## Features (current)
-
-- Full-screen 3D ocean scene — procedural seafloor, rocks, coral, swaying kelp, rising bubbles
-- Free-swim camera: smooth accelerating/decelerating WASD movement, mouse-look via pointer lock, vertical movement with Space / Shift
-- Five distinct ocean zones (Sunlit, Twilight, Midnight, Abyssal, Hadal), each with its own fog, lighting, floor/particle color, and creature roster; reef life (coral, kelp) only appears in the two lit zones, matching how real reefs work
-- Zone selector with a fade transition and a zone title card — switching zones is a deliberate teleport with a loading-style moment, not an instant cut
-- 13 marine life entries and 4 world objects (shipwreck, buoy, statue, hydrothermal vent), each an interactive low-poly 3D shape with idle motion
-- Crosshair-based targeting: look at something to highlight it and see its name, click to open its info panel — this app uses pointer-lock mouse-look, which hides/freezes the OS cursor, so hover is done by raycasting from the camera's own forward direction each frame rather than from mouse position
-- Search with category (animal/object) and zone filters across every entry; selecting a result switches zones if needed and spawns you near it, then opens its info panel
-- Reusable glassmorphism info panel (side panel on desktop, bottom sheet on mobile) showing name, scientific name, depth, habitat, diet, size, and facts — only for fields a given entry actually has
-- Live depth readout, scaled per zone so it always reads within that zone's real depth range
+- Full-screen 3D ocean scene with a free-swim camera: smooth accelerating/decelerating WASD
+  movement, mouse-look via pointer lock, vertical movement with Space/Shift
+- Five distinct ocean zones (Sunlit, Twilight, Midnight, Abyssal, Hadal), each with its own
+  fog, lighting, floor/particle color, and creature roster — reef life (coral, kelp) only
+  appears in the two lit zones, matching how real reefs work
+- Zone selector with a fade transition and title card between zones
+- 13 marine life entries and 4 world objects (shipwreck, buoy, statue, hydrothermal vent),
+  each a low-poly 3D shape built from reusable "archetype" components, with idle motion
+- Crosshair-based hover targeting (a raycast from the camera's own forward direction, since
+  pointer-lock mouse-look hides the OS cursor) — look at something to highlight it, click to
+  open its info panel
+- Search with category and zone filters across every entry; selecting a result switches zones
+  if needed, spawns you near it, and opens its panel
+- Reusable glassmorphism info panel (side panel on desktop, bottom sheet on mobile)
+- Discovery tracking, persisted to Local Storage, with a toast notification the first time you
+  find something new
+- Dive Journal: add, edit, and delete a personal note per discovered entry, from the
+  Discoveries page — full CRUD on real user content, with basic validation (empty notes can't
+  be saved)
+- Settings panel (sound, motion effects, learning mode, show HUD, creature labels, graphics
+  quality), persisted to Local Storage and reachable from any page
+- A minimal synthesized ambient hum for the Sound setting — not a sample file, generated with
+  the Web Audio API, so there's no asset that can fail to load
+- Touch controls for mobile: virtual joystick, drag-to-look, rise/dive buttons, and a tap-to-
+  interact button, since pointer lock isn't available on touch
 - WebGL support detection with a clean fallback screen
-- Responsive HUD and navigation shell (Explore / Discoveries / About)
+- Responsive HUD and navigation shell (Explore / Discoveries / About / Settings)
 
 ## Technologies
 
-- React 18 + Hooks
+- React 18 + Hooks (state, effect, memo, callback, ref, context)
 - Three.js + React Three Fiber + @react-three/drei
 - Bootstrap 5
 - Vite
-- Local Storage (wired up in Phase 4)
+- Local Storage (discoveries, journal entries, settings)
+- Web Audio API (synthesized ambient sound)
 
 ## Installation
 
@@ -57,76 +69,108 @@ npm run preview   # preview the production build locally
 
 ## Controls
 
-| Action | Desktop |
-|---|---|
-| Look around | Click the scene, then move the mouse (pointer lock) |
-| Swim forward / back | W / S or ↑ / ↓ |
-| Strafe left / right | A / D or ← / → |
-| Rise / dive | Space / Shift |
-| Release mouse | Esc |
+| Action | Desktop | Touch |
+|---|---|---|
+| Look around | Click the scene, then move the mouse (pointer lock) | Drag anywhere |
+| Swim / strafe | WASD or arrow keys | Left-side joystick |
+| Rise / dive | Space / Shift | Right-side up/down buttons |
+| Interact with target | Click | "Interact" button |
+| Release mouse | Esc | — |
 
-Touch controls for mobile arrive in Phase 4.
+Menus (Search, zone list, Settings) need the mouse released first on desktop — press Esc, or
+just click a creature, which releases it automatically when its info panel opens.
 
 ## Ocean zones
 
-Five zones are defined in `scripts/data.js` (Sunlit, Twilight, Midnight, Abyssal, Hadal),
-each carrying its own fog color/distance, lighting, floor and particle color, and whether it
-has reef life. Zones are separate "rooms" rather than one continuous 6000m-deep space — real
-scale would mean swimming through kilometers of empty water between them, so depth within a
-zone is calculated from the camera and then scaled into that zone's real depth range for
-display (see `Home.jsx`). Switching zones, from the zone list or a search result, triggers a
-fade + zone title card rather than an instant cut. `scripts/OceanZones.jsx` is the selector
-UI; `scripts/OceanScene.jsx` reads the active zone's config to build the environment.
+Five zones are defined in `scripts/data.js`, each carrying its own fog, lighting, floor and
+particle color, and whether it has reef life. Zones are separate "rooms" rather than one
+continuous 6000m-deep space — real scale would mean swimming through kilometers of empty
+water between them — so depth within a zone is calculated from the camera and then scaled
+into that zone's real depth range for display (`pages/Home.jsx`). Switching zones triggers a
+fade + title card. `scripts/OceanZones.jsx` is the selector UI; `scripts/OceanScene.jsx` reads
+the active zone's config to build the environment, including graphics-quality-adjusted
+particle counts and shadows from the Settings panel.
 
 ## 3D interaction
 
-Everything in the scene — floor, rocks, coral, kelp, creatures, objects — is built from plain
-Three.js geometry, not loaded models, so nothing can break from a missing asset. Marine life
-and objects are grouped into a handful of reusable low-poly "archetypes" (fish, shark, ray,
-turtle, jelly, cephalopod, whale, anglerfish, plus shipwreck/buoy/statue/vent for objects)
-that each data entry picks by name — see `scripts/MarineLife.jsx`. Targeting uses a raycast
-from the camera's forward direction each frame rather than mouse position, since pointer-lock
-mouse-look hides the OS cursor; see `scripts/Interactables.jsx`.
+Everything in the scene is built from plain Three.js geometry, not loaded models, so nothing
+can break from a missing asset. Marine life and objects share a handful of reusable low-poly
+"archetypes" (fish, shark, ray, turtle, jelly, cephalopod, whale, anglerfish, shipwreck, buoy,
+statue, vent) that each data entry picks by name — see `scripts/MarineLife.jsx`. Targeting is
+a raycast from the camera's forward direction each frame (`scripts/Interactables.jsx`), which
+also makes it input-agnostic: it works the same whether look-rotation came from the mouse or
+a touch drag.
 
 ## Search system
 
-`scripts/Search.jsx` searches name and scientific name across every marine life entry and
-world object, with category (animal/object) and zone filters. Selecting a result switches to
-its zone if you're not already there and spawns you near it, then opens its info panel.
+`scripts/Search.jsx` searches name and scientific name across every entry, with category
+(animal/object) and zone filters. Selecting a result switches to its zone if needed, spawns
+you near it, and opens its info panel.
 
 ## Discovery system
 
-Planned for Phase 4: clicking a creature or object marks it discovered, persisted to Local
-Storage, plus a Dive Journal for adding, editing, and deleting a personal note per discovery.
+`scripts/DiscoverySystem.jsx` marks an entry discovered the moment its info panel opens
+(desktop click, touch tap, or search selection all funnel through the same `activeEntity`
+state, so nothing has to remember to mark discovery separately). Discovered state and the
+Dive Journal's notes are both persisted to Local Storage. `pages/Discoveries.jsx` is the log —
+locked entries just show a lock icon; discovered ones expand into their description and the
+journal editor (add, edit, delete a note, 500-character limit, save disabled on empty input).
 
 ## Local storage
 
-A safe read/write wrapper already exists in `scripts/storage.js` (never throws on missing or
-corrupt data). Discoveries, journal entries, and settings will be stored through it starting
-in Phase 4.
+`scripts/storage.js` is a small safe read/write wrapper — invalid or missing data never
+crashes the app, it just falls back to a default. Three keys are used: `discovered`,
+`journal`, and `settings`.
 
 ## Responsive design
 
-Base responsive breakpoints are in `styles/responsive.css`. Full mobile touch controls (drag
-to look, on-screen movement) land in Phase 4.
+Base breakpoints are in `styles/responsive.css`; the info panel becomes a bottom sheet under
+768px. Below that width (or on any touch-capable device), `pages/Home.jsx` swaps the desktop
+hint text and pointer-lock camera for `scripts/MobileControls.jsx`'s joystick/drag/button
+scheme — touch capability is detected once on mount, so toggling a browser dev-tools device
+emulator without reloading the page won't switch modes.
 
 ## Performance optimization
 
-- Bubbles render as a single instanced mesh rather than 70 separate objects
-- Device pixel ratio capped at 1.5 to protect frame rate on high-DPI screens
-- Decorative geometry (rocks, coral, seaweed) uses low-poly primitives, not model imports
+- Bubbles render as a single instanced mesh rather than dozens of separate objects
+- Graphics quality setting (Low/Medium/High) scales bubble and particle counts, shadow
+  rendering, and device pixel ratio
+- Motion-effects setting reduces idle-animation amplitude for lower-powered devices or anyone
+  who prefers less movement, alongside a `prefers-reduced-motion` CSS fallback
+- Decorative geometry (rocks, coral, kelp) uses low-poly primitives, not model imports
+- Each zone only renders its own creatures/objects, not all 17 entries at once
 
 ## Deployment
-
-Not yet deployed. Once the project is further along:
 
 ```bash
 npm run build
 ```
 
-then deploy the `dist/` folder to Vercel or Netlify.
+Deploy the `dist/` folder to Vercel or Netlify (drag-and-drop the folder, or connect the repo
+and set the build command to `npm run build` and the output directory to `dist`).
+
+## Known risk areas
+
+Built without a browser to actually look at or a touch device to test on, verified only by
+`npm run build`, booting the dev server, and careful manual code review — real, but partial,
+verification. Before you submit or record your walkthrough, check these specifically:
+
+- **Touch controls** are the biggest unknown — joystick feel, look sensitivity
+  (`TOUCH_LOOK_SENSITIVITY` in `scripts/Controls.jsx`), and whether the on-screen buttons
+  overlap awkwardly on a real phone screen, not just a resized desktop browser.
+- **Settings actually taking effect inside the 3D scene** (motion effects, learning mode,
+  creature labels) rely on React Context reaching components rendered inside the Canvas. This
+  is standard, reliable React Three Fiber behavior, but it's still worth toggling each one and
+  confirming you see a difference.
+- **The three darkest zones' lighting** (Midnight/Abyssal/Hadal) was deliberately biased
+  brighter than "extreme darkness" would technically call for, since an earlier phase shipped
+  a scene that was genuinely empty on screen and looked fine in code. Worth a look in case it
+  overshot the other way and doesn't feel distinct enough from the lit zones.
+- **Sound** is a real synthesized tone, not a placeholder, but it has never been heard by
+  anything that built it.
 
 ## Future improvements
 
-Sonar, compass, bioluminescence proximity effects, submarine mode, and ambient sound are
-stretch goals for after the core experience (Phases 1–4) is complete and solid.
+Sonar, compass, submarine mode, and a larger creature/object roster (the spec describes up to
+50 discoverable entries; 17 are seeded) are reasonable next additions once the above is
+confirmed solid, but weren't part of the planned 4 phases.

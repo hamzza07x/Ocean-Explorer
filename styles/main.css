@@ -96,10 +96,91 @@ button {
 
 .discovery-card {
   display: flex;
+  flex-direction: column;
+  padding: 0;
+  opacity: 0.6;
+  overflow: hidden;
+}
+
+.discovery-card.found {
+  opacity: 1;
+}
+
+.discovery-card-header {
+  width: 100%;
+  display: flex;
   align-items: center;
   justify-content: space-between;
+  background: transparent;
+  border: none;
+  color: var(--foam);
   padding: 14px 16px;
-  opacity: 0.6;
+  font-size: 0.92rem;
+  text-align: left;
+}
+
+.discovery-card-header:disabled {
+  color: var(--foam-dim);
+  cursor: default;
+}
+
+.discovery-journal {
+  padding: 0 16px 16px;
+}
+
+.discovery-journal-desc {
+  font-size: 0.82rem;
+  color: var(--foam-dim);
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.discovery-journal textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  color: var(--foam);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.discovery-journal textarea:focus {
+  outline: 1.5px solid var(--teal-glow);
+}
+
+.discovery-journal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.discovery-journal-count {
+  font-size: 0.7rem;
+  color: var(--foam-dim);
+  margin-right: auto;
+}
+
+.discovery-journal-actions button {
+  background: rgba(77, 216, 200, 0.12);
+  border: 1px solid var(--glass-border);
+  color: var(--teal-glow);
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.discovery-journal-actions button:disabled {
+  opacity: 0.4;
+  color: var(--foam-dim);
+}
+
+.discovery-journal-delete {
+  background: rgba(217, 85, 107, 0.12) !important;
+  color: #e08a97 !important;
 }
 
 .discovery-name {

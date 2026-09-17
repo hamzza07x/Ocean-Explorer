@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Home from '../pages/Home.jsx'
 import Discoveries from '../pages/Discoveries.jsx'
 import About from '../pages/About.jsx'
+import SettingsPanel from './Settings.jsx'
 
 const PAGES = [
   { id: 'home', label: 'Explore' },
@@ -11,6 +12,7 @@ const PAGES = [
 
 export default function App() {
   const [page, setPage] = useState('home')
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <div className="app-root">
@@ -28,6 +30,9 @@ export default function App() {
               {p.label}
             </button>
           ))}
+          <button type="button" onClick={() => setShowSettings((v) => !v)}>
+            Settings
+          </button>
         </div>
       </nav>
       <main className="app-main">
@@ -35,6 +40,7 @@ export default function App() {
         {page === 'discoveries' && <Discoveries />}
         {page === 'about' && <About />}
       </main>
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </div>
   )
 }

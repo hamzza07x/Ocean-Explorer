@@ -1,18 +1,27 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import OceanScene from '../scripts/OceanScene.jsx'
 import InformationPanel from '../scripts/InformationPanel.jsx'
 import OceanZones from '../scripts/OceanZones.jsx'
 import Search from '../scripts/Search.jsx'
+import MobileControls from '../scripts/MobileControls.jsx'
 import { isWebGLAvailable } from '../scripts/webgl.js'
 import { zones } from '../scripts/data.js'
+import { useSettings } from '../scripts/Settings.jsx'
+import { useDiscovery } from '../scripts/DiscoverySystem.jsx'
 
 const DEFAULT_SPAWN = [0, -5, 15]
 const LOCAL_DEPTH_MIN = 1
 const LOCAL_DEPTH_MAX = 55
 const TRANSITION_FADE_MS = 500
 
+function detectTouch() {
+  if (typeof window === 'undefined') return false
+  return 'ontouchstart' in window || window.matchMedia('(max-width: 768px)').matches
+}
+
 export default function Home() {
   const [webglOk] = useState(() => isWebGLAvailable())
+  const [isTouch] = useState(detectTouch)
   const [localDepth, setLocalDepth] = useState(5)
   const [activeEntity, setActiveEntity] = useState(null)
   const [activeZoneId, setActiveZoneId] = useState('sunlit')
@@ -21,6 +30,15 @@ export default function Home() {
   const [pendingZone, setPendingZone] = useState(null)
   const [showSearch, setShowSearch] = useState(false)
 
+  const { settings } = useSettings()
+  const { markDiscovered, lastDiscoveredName } = useDiscovery()
+
+  // Shared with MobileControls: it writes into these every touch event,
+  // Controls.jsx reads them every frame. Plain refs cross the DOM/Canvas
+  // boundary cheaply without triggering React re-renders on every touch move.
+  const touchInput = useRef({ move: { forward: 0, strafe: 0 }, look: { x: 0, y: 0 }, ascend: 0 })
+  const activateSignal = useRef(false)
+
   const handleDepthChange = useCallback((d) => setLocalDepth(d), [])
 
   const handleActivate = useCallback((data) => {
@@ -28,10 +46,14 @@ export default function Home() {
     if (document.exitPointerLock) document.exitPointerLock()
   }, [])
 
-  // Zones are separate "rooms" now rather than one continuous 6000m-deep
-  // space, so switching one is a teleport-with-transition (per the brief's
-  // own zone-transition section) rather than organic descent. spawnNear
-  // lets search results land you close to what you searched for; openEntity
+  useEffect(() => {
+    if (activeEntity) markDiscovered(activeEntity.id, activeEntity.name)
+  }, [activeEntity, markDiscovered])
+
+  // Zones are separate "rooms" rather than one continuous 6000m-deep space,
+  // so switching one is a teleport-with-transition (per the brief's own
+  // zone-transition section) rather than organic descent. spawnNear lets
+  // search results land you close to what you searched for; openEntity
   // opens its info panel once the new room has actually mounted.
   const changeZone = useCallback(
     (zoneId, { spawnNear, openEntity } = {}) => {
@@ -81,16 +103,11 @@ export default function Home() {
   const activeZone = useMemo(() => zones.find((z) => z.id === activeZoneId) || zones[0], [activeZoneId])
 
   const displayDepth = useMemo(() => {
-    const progress = Math.min(
-      1,
-      Math.max(0, (localDepth - LOCAL_DEPTH_MIN) / (LOCAL_DEPTH_MAX - LOCAL_DEPTH_MIN))
-    )
+    const progress = Math.min(1, Math.max(0, (localDepth - LOCAL_DEPTH_MIN) / (LOCAL_DEPTH_MAX - LOCAL_DEPTH_MIN)))
     return Math.round(activeZone.minDepth + progress * (activeZone.maxDepth - activeZone.minDepth))
   }, [localDepth, activeZone])
 
-  const transitionZoneName = pendingZone
-    ? zones.find((z) => z.id === pendingZone.id)?.name
-    : ''
+  const transitionZoneName = pendingZone ? zones.find((z) => z.id === pendingZone.id)?.name : ''
 
   if (!webglOk) {
     return (
@@ -113,31 +130,50 @@ export default function Home() {
         spawnPosition={spawnPosition}
         onDepthChange={handleDepthChange}
         onActivate={handleActivate}
+        isTouch={isTouch}
+        touchInput={touchInput}
+        activateSignal={activateSignal}
       />
-      <div className="crosshair" aria-hidden="true" />
 
-      <OceanZones activeZoneId={activeZoneId} onSelectZone={changeZone} disabled={transitioning} />
+      {!isTouch && <div className="crosshair" aria-hidden="true" />}
+      {isTouch && <MobileControls touchInput={touchInput} activateSignal={activateSignal} />}
 
-      <button
-        type="button"
-        className="search-toggle glass-panel"
-        onClick={() => setShowSearch((v) => !v)}
-      >
-        Search
-      </button>
-      {showSearch && <Search onSelect={handleSearchSelect} onClose={() => setShowSearch(false)} />}
+      {settings.showHUD && (
+        <>
+          <OceanZones activeZoneId={activeZoneId} onSelectZone={changeZone} disabled={transitioning} />
 
-      <div className="hud-overlay">
-        <div className="hud-depth glass-panel">
-          <div className="depth-label">DEPTH</div>
-          <div className="depth-value">{displayDepth}m</div>
-          <div className="zone-label">{activeZone.name}</div>
+          <button type="button" className="search-toggle glass-panel" onClick={() => setShowSearch((v) => !v)}>
+            Search
+          </button>
+          {showSearch && <Search onSelect={handleSearchSelect} onClose={() => setShowSearch(false)} />}
+
+          <div className="hud-overlay">
+            <div className="hud-depth glass-panel">
+              <div className="depth-label">DEPTH</div>
+              <div className="depth-value">{displayDepth}m</div>
+              <div className="zone-label">{activeZone.name}</div>
+            </div>
+            <div className="hud-hint">
+              {isTouch
+                ? 'Drag to look around, use the joystick to swim, the arrows to rise and dive.'
+                : 'Click to look around, WASD to swim, Space or Shift to rise and dive.'}{' '}
+              Look at something, then {isTouch ? 'tap Interact' : 'click'} to inspect it.
+            </div>
+          </div>
+        </>
+      )}
+
+      {lastDiscoveredName && (
+        <div className="discovery-toast glass-panel" role="status">
+          <span className="discovery-toast-icon" aria-hidden="true">
+            {'\u2713'}
+          </span>
+          <div>
+            <div className="discovery-toast-label">Discovered</div>
+            <div className="discovery-toast-name">{lastDiscoveredName}</div>
+          </div>
         </div>
-        <div className="hud-hint">
-          Click to look around, WASD to swim, Space or Shift to rise and dive. Look at
-          something and click to inspect it.
-        </div>
-      </div>
+      )}
 
       <InformationPanel data={activeEntity} onClose={() => setActiveEntity(null)} />
 

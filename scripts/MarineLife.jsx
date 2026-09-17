@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { marineLife, worldObjects } from './data.js'
 import { useRegisterInteractable, useIsTargeted } from './Interactables.jsx'
+import { useSettings } from './Settings.jsx'
 
 function highlightProps(highlighted) {
   return highlighted
@@ -17,20 +18,23 @@ function highlightProps(highlighted) {
 function Interactable({ data, children }) {
   const ref = useRegisterInteractable(data.id, data)
   const highlighted = useIsTargeted(data.id)
+  const { settings } = useSettings()
   const phase = useMemo(() => Math.random() * Math.PI * 2, [])
   const basePos = data.position
 
   useFrame((state) => {
-    if (!ref.current || data.static) return
+    if (!ref.current || data.static || !settings.motionEffects) return
     const t = state.clock.elapsedTime
     ref.current.position.y = basePos[1] + Math.sin(t * 0.6 + phase) * 0.6
     ref.current.rotation.y = Math.sin(t * 0.2 + phase) * 0.3
   })
 
+  const showTooltip = settings.learningMode || (settings.creatureLabels && highlighted)
+
   return (
     <group ref={ref} position={basePos} scale={data.scale}>
       {children(highlighted)}
-      {highlighted && (
+      {showTooltip && (
         <Html position={[0, 1.8, 0]} center distanceFactor={12}>
           <div className="creature-tooltip">{data.name}</div>
         </Html>
