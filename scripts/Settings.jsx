@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
 import { loadJSON, saveJSON } from './storage.js'
+import { useDiscovery } from './DiscoverySystem.jsx'
 
 const SettingsContext = createContext(null)
 
@@ -91,6 +92,13 @@ export function useSettings() {
 
 export default function SettingsPanel({ onClose }) {
   const { settings, updateSetting } = useSettings()
+  const { resetAll } = useDiscovery()
+
+  const handleReset = () => {
+    if (window.confirm('Clear all discoveries and journal notes? This cannot be undone.')) {
+      resetAll()
+    }
+  }
 
   return (
     <div className="settings-panel glass-panel">
@@ -150,6 +158,10 @@ export default function SettingsPanel({ onClose }) {
           <option value="high">High</option>
         </select>
       </div>
+
+      <button type="button" className="settings-reset" onClick={handleReset}>
+        Reset progress
+      </button>
     </div>
   )
 }

@@ -3,7 +3,10 @@
 An interactive 3D underwater exploration experience, built with React and React Three Fiber
 for a front-end development internship.
 
-**Status: original 4-phase plan complete; now mid-way through an additional "advanced features" upgrade pass. Target Lock, Scan Mode, Sonar, POI Navigation, and Mini-map are done (upgrade priority 2 of 5). Missions, achievements, statistics, and zone completion are next.**
+**Status: original 4-phase plan complete; upgrade priority 2 (Target Lock, Scan Mode, Sonar,
+Navigation, Mini-map) done, plus a mini-map positioning fix from real feedback and a small
+round of robustness/performance additions. Missions, achievements, statistics, and zone
+completion are next.**
 
 ## Project Overview
 
@@ -47,6 +50,14 @@ real, clickable Three.js object, not an image.
   directional-arrow HUD toward it, with an arrival notification
 - A mini-map showing real nearby positions (not a static image), desktop only — hidden on
   touch rather than guessed-at on an already-crowded screen
+- An error boundary around the whole app — a rendering crash anywhere shows a reload screen
+  instead of a blank page; discoveries and settings are unaffected since they're in Local
+  Storage, not component state
+- The 3D scene (and the Three.js/React Three Fiber/drei code it pulls in) now loads as its
+  own chunk behind a real loading screen, instead of blocking the whole app's first paint —
+  dropped the main JS bundle from ~1.07MB to ~174KB
+- A "Reset progress" option in Settings, for clearing discoveries and journal notes during
+  testing
 - WebGL support detection with a clean fallback screen
 - Responsive HUD and navigation shell (Explore / Discoveries / About / Settings)
 

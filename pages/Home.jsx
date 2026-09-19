@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import OceanScene from '../scripts/OceanScene.jsx'
+import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import InformationPanel from '../scripts/InformationPanel.jsx'
 import OceanZones from '../scripts/OceanZones.jsx'
 import Search from '../scripts/Search.jsx'
@@ -9,10 +8,13 @@ import Scanner from '../scripts/Scanner.jsx'
 import Sonar from '../scripts/Sonar.jsx'
 import Navigation from '../scripts/Navigation.jsx'
 import MiniMap from '../scripts/MiniMap.jsx'
+import LoadingScreen from '../scripts/LoadingScreen.jsx'
 import { isWebGLAvailable } from '../scripts/webgl.js'
 import { zones } from '../scripts/data.js'
 import { useSettings } from '../scripts/Settings.jsx'
 import { useDiscovery } from '../scripts/DiscoverySystem.jsx'
+
+const OceanScene = lazy(() => import('../scripts/OceanScene.jsx'))
 
 const DEFAULT_SPAWN = [0, -5, 15]
 const LOCAL_DEPTH_MIN = 1
@@ -194,24 +196,26 @@ export default function Home() {
 
   return (
     <div className="explorer-container">
-      <OceanScene
-        key={activeZoneId}
-        zone={activeZone}
-        zoneId={activeZoneId}
-        spawnPosition={spawnPosition}
-        onDepthChange={handleDepthChange}
-        onActivate={handleActivate}
-        isTouch={isTouch}
-        touchInput={touchInput}
-        activateSignal={activateSignal}
-        onTargetChange={handleTargetChange}
-        onScanProgress={handleScanProgress}
-        sonarSignal={sonarSignal}
-        onSonarResult={handleSonarResult}
-        navigationTargetId={navigationTargetId}
-        onNavigationUpdate={handleNavUpdate}
-        onMinimapUpdate={handleMinimapUpdate}
-      />
+      <Suspense fallback={<LoadingScreen />}>
+        <OceanScene
+          key={activeZoneId}
+          zone={activeZone}
+          zoneId={activeZoneId}
+          spawnPosition={spawnPosition}
+          onDepthChange={handleDepthChange}
+          onActivate={handleActivate}
+          isTouch={isTouch}
+          touchInput={touchInput}
+          activateSignal={activateSignal}
+          onTargetChange={handleTargetChange}
+          onScanProgress={handleScanProgress}
+          sonarSignal={sonarSignal}
+          onSonarResult={handleSonarResult}
+          navigationTargetId={navigationTargetId}
+          onNavigationUpdate={handleNavUpdate}
+          onMinimapUpdate={handleMinimapUpdate}
+        />
+      </Suspense>
 
       {!isTouch && (
         <>

@@ -41,6 +41,13 @@ export function DiscoveryProvider({ children }) {
     })
   }, [])
 
+  const resetAll = useCallback(() => {
+    setDiscovered({})
+    setJournal({})
+    saveJSON('discovered', {})
+    saveJSON('journal', {})
+  }, [])
+
   const value = {
     discovered,
     discoveredCount: Object.keys(discovered).length,
@@ -49,6 +56,7 @@ export function DiscoveryProvider({ children }) {
     isDiscovered,
     saveNote,
     deleteNote,
+    resetAll,
     lastDiscoveredName
   }
 
