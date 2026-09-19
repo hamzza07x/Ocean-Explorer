@@ -41,6 +41,18 @@
     max-height: 60vh;
     border-radius: 16px 16px 0 0;
   }
+
+  .minimap {
+    display: none;
+  }
+
+  .hud-depth {
+    margin-bottom: 130px;
+  }
+
+  .nav-hud {
+    bottom: 150px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

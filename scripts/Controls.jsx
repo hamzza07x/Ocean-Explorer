@@ -55,12 +55,17 @@ export default function Controls({ onDepthChange, isTouch, touchInput }) {
 
     const handleKeyDown = (e) => setKey(e.code, true)
     const handleKeyUp = (e) => setKey(e.code, false)
+    const handleBlur = () => {
+      keys.current = { forward: false, backward: false, left: false, right: false, up: false, down: false }
+    }
 
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleBlur)
     }
   }, [isTouch])
 

@@ -172,7 +172,14 @@ export default function OceanScene({
   onActivate,
   isTouch,
   touchInput,
-  activateSignal
+  activateSignal,
+  onTargetChange,
+  onScanProgress,
+  sonarSignal,
+  onSonarResult,
+  navigationTargetId,
+  onNavigationUpdate,
+  onMinimapUpdate
 }) {
   const { settings } = useSettings()
   const quality = QUALITY[settings.graphicsQuality] || QUALITY.medium
@@ -192,7 +199,17 @@ export default function OceanScene({
         intensity={zone.directionalIntensity}
         castShadow={quality.shadows}
       />
-      <InteractionProvider onActivate={onActivate} activateSignal={activateSignal}>
+      <InteractionProvider
+        onActivate={onActivate}
+        activateSignal={activateSignal}
+        onTargetChange={onTargetChange}
+        onScanProgress={onScanProgress}
+        sonarSignal={sonarSignal}
+        onSonarResult={onSonarResult}
+        navigationTargetId={navigationTargetId}
+        onNavigationUpdate={onNavigationUpdate}
+        onMinimapUpdate={onMinimapUpdate}
+      >
         <Suspense fallback={null}>
           <OceanFloor color={zone.floorColor} />
           <SceneDecor hasReef={zone.hasReef} rockColor={zone.rockColor} />

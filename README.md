@@ -3,9 +3,7 @@
 An interactive 3D underwater exploration experience, built with React and React Three Fiber
 for a front-end development internship.
 
-**Status: all 4 planned phases built.** See "Known risk areas" near the bottom before you
-submit — a few pieces (mainly touch controls) could not be tested by the tool that built them
-and need a real pass on a phone before you present this.
+**Status: original 4-phase plan complete; now mid-way through an additional "advanced features" upgrade pass. Target Lock, Scan Mode, Sonar, POI Navigation, and Mini-map are done (upgrade priority 2 of 5). Missions, achievements, statistics, and zone completion are next.**
 
 ## Project Overview
 
@@ -41,6 +39,14 @@ real, clickable Three.js object, not an image.
   the Web Audio API, so there's no asset that can fail to load
 - Touch controls for mobile: virtual joystick, drag-to-look, rise/dive buttons, and a tap-to-
   interact button, since pointer lock isn't available on touch
+- Target lock HUD: a name label near the crosshair for whatever's currently targeted, with a
+  scan-progress ring (hold E on desktop, or tap Interact on touch)
+- Real sonar: a sweep button that computes actual distances from the camera to every
+  registered creature/object within range and lists them nearest-first — not placeholder text
+- Point-of-interest navigation: "Navigate here" on any info panel sets a live distance +
+  directional-arrow HUD toward it, with an arrival notification
+- A mini-map showing real nearby positions (not a static image), desktop only — hidden on
+  touch rather than guessed-at on an already-crowded screen
 - WebGL support detection with a clean fallback screen
 - Responsive HUD and navigation shell (Explore / Discoveries / About / Settings)
 
@@ -168,6 +174,13 @@ verification. Before you submit or record your walkthrough, check these specific
   overshot the other way and doesn't feel distinct enough from the lit zones.
 - **Sound** is a real synthesized tone, not a placeholder, but it has never been heard by
   anything that built it.
+- **The mini-map and navigation arrow's sense of direction** (`scripts/Interactables.jsx`,
+  the `atan2` bearing math) is reasoned through carefully but never watched move — worth
+  confirming the arrow actually points toward, not away from, your destination, and that the
+  map's dots track your real position as you swim.
+- **HUD density**: target lock, scanner ring, sonar, mini-map, and navigation are now all
+  sharing screen space with the zone list, search, and depth readout. Worth a look at whether
+  anything visually collides, especially around 1024–1366px laptop widths.
 
 ## Future improvements
 

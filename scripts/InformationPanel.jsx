@@ -1,4 +1,4 @@
-export default function InformationPanel({ data, onClose }) {
+export default function InformationPanel({ data, onClose, onNavigate }) {
   if (!data) return null
 
   return (
@@ -44,6 +44,11 @@ export default function InformationPanel({ data, onClose }) {
             <li key={fact}>{fact}</li>
           ))}
         </ul>
+      )}
+      {onNavigate && (
+        <button type="button" className="info-panel-navigate" onClick={() => onNavigate(data)}>
+          Navigate here
+        </button>
       )}
     </div>
   )
