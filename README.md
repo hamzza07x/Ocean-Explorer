@@ -3,10 +3,10 @@
 An interactive 3D underwater exploration experience, built with React and React Three Fiber
 for a front-end development internship.
 
-**Status: original 4-phase plan complete; upgrade priority 2 (Target Lock, Scan Mode, Sonar,
-Navigation, Mini-map) done, plus a mini-map positioning fix from real feedback and a small
-round of robustness/performance additions. Missions, achievements, statistics, and zone
-completion are next.**
+**Status: original 4-phase plan complete; upgrade priorities 2 and 3 done (Target Lock, Scan
+Mode, Sonar, Navigation, Mini-map, Missions, Achievements, Statistics, Zone Completion), plus
+a mini-map fix from real feedback and a round of robustness/performance additions. Learning
+Mode 2.0, Creature Comparison, Snapshot, Cinematic Mode, and the Home/About rewrites are next.**
 
 ## Project Overview
 
@@ -58,6 +58,12 @@ real, clickable Three.js object, not an image.
   dropped the main JS bundle from ~1.07MB to ~174KB
 - A "Reset progress" option in Settings, for clearing discoveries and journal notes during
   testing
+- 7 missions and 7 achievements, both computed live from real exploration data (depth
+  reached, zones visited, what's been discovered) rather than tracked as separate counters
+  that could drift out of sync — with their own notification toasts, stacked properly so
+  multiple at once don't overlap
+- Exploration statistics and per-zone completion bars, all calculated on the fly, on the
+  Discoveries page (now tabbed: Log / Missions / Achievements / Statistics)
 - WebGL support detection with a clean fallback screen
 - Responsive HUD and navigation shell (Explore / Discoveries / About / Settings)
 
@@ -192,6 +198,14 @@ verification. Before you submit or record your walkthrough, check these specific
 - **HUD density**: target lock, scanner ring, sonar, mini-map, and navigation are now all
   sharing screen space with the zone list, search, and depth readout. Worth a look at whether
   anything visually collides, especially around 1024–1366px laptop widths.
+- **Multiple toasts at once**: discovery, mission, and achievement notices can now all fire
+  from the same action (e.g. a discovery that happens to complete a mission). They're built to
+  stack rather than overlap, but that's reasoned through, not watched happen.
+- A real, shipped bug from this round, for context on what "verified by build + review" does
+  and doesn't catch: two new effects referenced a value computed later in the same component.
+  `npm run build` passed anyway — it's a runtime error, not a syntax one — and it was only
+  caught by manually re-reading the file line by line. Everything in this project has had that
+  level of review, but review isn't the same as watching it run.
 
 ## Future improvements
 

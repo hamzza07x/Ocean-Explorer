@@ -49,7 +49,14 @@ export default function Home() {
   const [notice, setNotice] = useState(null)
 
   const { settings } = useSettings()
-  const { markDiscovered, lastDiscoveredName } = useDiscovery()
+  const {
+    markDiscovered,
+    lastDiscoveredName,
+    recordDepth,
+    recordZoneVisit,
+    lastMissionComplete,
+    lastAchievementUnlocked
+  } = useDiscovery()
 
   // Shared with MobileControls: it writes into these every touch event,
   // Controls.jsx reads them every frame. Plain refs cross the DOM/Canvas
@@ -180,6 +187,14 @@ export default function Home() {
     return Math.round(activeZone.minDepth + progress * (activeZone.maxDepth - activeZone.minDepth))
   }, [localDepth, activeZone])
 
+  useEffect(() => {
+    recordDepth(displayDepth)
+  }, [displayDepth, recordDepth])
+
+  useEffect(() => {
+    recordZoneVisit(activeZoneId)
+  }, [activeZoneId, recordZoneVisit])
+
   const transitionZoneName = pendingZone ? zones.find((z) => z.id === pendingZone.id)?.name : ''
 
   if (!webglOk) {
@@ -268,22 +283,40 @@ export default function Home() {
         </>
       )}
 
-      {lastDiscoveredName && (
-        <div className="discovery-toast glass-panel" role="status">
-          <span className="discovery-toast-icon" aria-hidden="true">
-            {'\u2713'}
-          </span>
-          <div>
-            <div className="discovery-toast-label">Discovered</div>
-            <div className="discovery-toast-name">{lastDiscoveredName}</div>
+      <div className="toast-stack">
+        {lastDiscoveredName && (
+          <div className="discovery-toast glass-panel" role="status">
+            <span className="discovery-toast-icon" aria-hidden="true">
+              {'\u2713'}
+            </span>
+            <div>
+              <div className="discovery-toast-label">Discovered</div>
+              <div className="discovery-toast-name">{lastDiscoveredName}</div>
+            </div>
           </div>
-        </div>
-      )}
-      {notice && (
-        <div className="discovery-toast notice-toast glass-panel" role="status">
-          <span className="discovery-toast-name">{notice}</span>
-        </div>
-      )}
+        )}
+        {lastMissionComplete && (
+          <div className="discovery-toast glass-panel" role="status">
+            <div>
+              <div className="discovery-toast-label">Mission Complete</div>
+              <div className="discovery-toast-name">{lastMissionComplete}</div>
+            </div>
+          </div>
+        )}
+        {lastAchievementUnlocked && (
+          <div className="discovery-toast glass-panel" role="status">
+            <div>
+              <div className="discovery-toast-label">Achievement Unlocked</div>
+              <div className="discovery-toast-name">{lastAchievementUnlocked}</div>
+            </div>
+          </div>
+        )}
+        {notice && (
+          <div className="discovery-toast glass-panel" role="status">
+            <span className="discovery-toast-name">{notice}</span>
+          </div>
+        )}
+      </div>
 
       <InformationPanel data={activeEntity} onClose={() => setActiveEntity(null)} onNavigate={handleNavigate} />
 

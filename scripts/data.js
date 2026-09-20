@@ -332,9 +332,97 @@ export const marineLife = [
   }
 ]
 
-// First pass of interactive world objects (Priority 3 covers "marine life
-// AND objects"). More join the roster later; these three are enough to
-// prove out the interaction system end to end.
+// Every mission/achievement `check` runs against the same derived stats
+// object (see deriveExplorationStats below) rather than maintaining its
+// own separate progress counter — one source of truth, and it's the
+// reason none of this can silently drift out of sync with what's
+// actually been discovered.
+export const missions = [
+  {
+    id: 'first-dive',
+    title: 'First Dive',
+    description: 'Descend below 100m.',
+    check: (s) => s.maxDepthReached >= 100,
+    progressLabel: (s) => `${Math.min(s.maxDepthReached, 100)} / 100m`
+  },
+  {
+    id: 'marine-researcher',
+    title: 'Marine Researcher',
+    description: 'Discover 5 different creatures.',
+    check: (s) => s.animalCount >= 5,
+    progressLabel: (s) => `${Math.min(s.animalCount, 5)} / 5`
+  },
+  {
+    id: 'deep-explorer',
+    title: 'Deep Explorer',
+    description: 'Reach the Midnight Zone.',
+    check: (s) => s.visitedZones.includes('midnight'),
+    progressLabel: (s) => (s.visitedZones.includes('midnight') ? 'Reached' : 'Not yet')
+  },
+  {
+    id: 'lost-expedition',
+    title: 'Lost Expedition',
+    description: 'Find the sunken shipwreck.',
+    check: (s) => Boolean(s.discovered.shipwreck),
+    progressLabel: (s) => (s.discovered.shipwreck ? 'Found' : 'Not found')
+  },
+  {
+    id: 'into-the-abyss',
+    title: 'Into the Abyss',
+    description: 'Reach the Abyssal Zone.',
+    check: (s) => s.visitedZones.includes('abyssal'),
+    progressLabel: (s) => (s.visitedZones.includes('abyssal') ? 'Reached' : 'Not yet')
+  },
+  {
+    id: 'unknown-life',
+    title: 'Unknown Life',
+    description: 'Discover 3 creatures from the Midnight zone or deeper.',
+    check: (s) => s.deepCreatureCount >= 3,
+    progressLabel: (s) => `${Math.min(s.deepCreatureCount, 3)} / 3`
+  },
+  {
+    id: 'ocean-archaeologist',
+    title: 'Ocean Archaeologist',
+    description: 'Discover every underwater object.',
+    check: (s) => s.totalObjects > 0 && s.objectCount >= s.totalObjects,
+    progressLabel: (s) => `${s.objectCount} / ${s.totalObjects}`
+  }
+]
+
+// Thresholds are sized to this project's actual 13-creature, 4-object
+// dataset — copying numbers from a generic brief (e.g. "discover 25
+// species") when the real data only has 13 would make an achievement
+// that can never unlock, which is the "not really functional" failure
+// the brief itself warns against.
+export const achievements = [
+  { id: 'first-contact', title: 'First Contact', icon: '\u{1F30A}', description: 'Make your first discovery.', check: (s) => s.discoveredTotal >= 1 },
+  { id: 'marine-researcher-badge', title: 'Marine Researcher', icon: '\u{1F52C}', description: 'Discover 10 creatures.', check: (s) => s.animalCount >= 10 },
+  { id: 'into-the-dark', title: 'Into the Dark', icon: '\u{1F311}', description: 'Reach the Midnight Zone.', check: (s) => s.visitedZones.includes('midnight') },
+  { id: 'abyssal-explorer', title: 'Abyssal Explorer', icon: '\u{1F525}', description: 'Reach the Abyssal Zone.', check: (s) => s.visitedZones.includes('abyssal') },
+  { id: 'lost-expedition-badge', title: 'Lost Expedition', icon: '\u2693', description: 'Discover the shipwreck.', check: (s) => Boolean(s.discovered.shipwreck) },
+  { id: 'creature-collector', title: 'Creature Collector', icon: '\u{1F9EC}', description: 'Discover all marine life.', check: (s) => s.totalAnimals > 0 && s.animalCount >= s.totalAnimals },
+  { id: 'world-explorer', title: 'World Explorer', icon: '\u{1F5FA}\uFE0F', description: 'Visit every ocean zone.', check: (s) => s.visitedZones.length >= zones.length }
+]
+
+export function deriveExplorationStats({ discovered, visitedZones, maxDepthReached, journal }) {
+  const discoveredIds = Object.keys(discovered || {})
+  const animalIds = new Set(marineLife.map((m) => m.id))
+  const objectIds = new Set(worldObjects.map((o) => o.id))
+  const deepZones = new Set(['midnight', 'abyssal', 'hadal'])
+
+  return {
+    discovered: discovered || {},
+    discoveredTotal: discoveredIds.length,
+    animalCount: discoveredIds.filter((id) => animalIds.has(id)).length,
+    totalAnimals: marineLife.length,
+    objectCount: discoveredIds.filter((id) => objectIds.has(id)).length,
+    totalObjects: worldObjects.length,
+    deepCreatureCount: marineLife.filter((m) => discovered?.[m.id] && deepZones.has(m.zone)).length,
+    visitedZones: visitedZones || [],
+    maxDepthReached: maxDepthReached || 0,
+    journalCount: Object.keys(journal || {}).length
+  }
+}
 export const worldObjects = [
   {
     id: 'shipwreck',
